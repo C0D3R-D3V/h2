@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import './App.css';
+import ChatBot from './components/ChatBot';
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -548,6 +549,8 @@ export default function App() {
           © 2023 FestX at KOED Learning. All rights reserved.
         </div>
       </footer>
+    {/* ChatBot */}
+      <ChatBot isLoggedIn={isLoggedIn} userId={isLoggedIn ? 1 : null} />
     </div>
   );
 }
