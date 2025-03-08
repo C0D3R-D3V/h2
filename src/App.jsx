@@ -10,6 +10,14 @@ export default function App() {
     {id: 2, message: "Early bird tickets now available!", isNew: true},
     {id: 3, message: "Workshop registration opens tomorrow", isNew: false}
   ]);
+  
+  // Check for login status when component mounts
+  useEffect(() => {
+    const loginStatus = localStorage.getItem('isLoggedIn');
+    if (loginStatus === 'true') {
+      setIsLoggedIn(true);
+    }
+  }, []);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [newNotificationCount, setNewNotificationCount] = useState(2);
@@ -277,7 +285,10 @@ export default function App() {
                         {isDarkTheme ? 'Light Theme' : 'Dark Theme'}
                       </button>
                       <div className="dropdown-divider"></div>
-                      <button className="user-dropdown-item logout" onClick={() => setIsLoggedIn(false)}>
+                      <button className="user-dropdown-item logout" onClick={() => {
+                        setIsLoggedIn(false);
+                        localStorage.removeItem('isLoggedIn');
+                      }}>
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                           <polyline points="16 17 21 12 16 7"></polyline>
@@ -290,8 +301,8 @@ export default function App() {
                 </div>
               ) : (
                 <>
-                  <button onClick={() => setIsLoggedIn(true)}>Login</button>
-                  <button className="register-btn">Register</button>
+                  <a href="/login"><button>Login</button></a>
+                  <a href="/register"><button className="register-btn">Register</button></a>
                 </>
               )}
             </div>

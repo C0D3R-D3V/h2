@@ -9,6 +9,8 @@ import MovieScreening from './components/MovieScreening';
 import CricketScreening from './components/CricketScreening';
 import Workshop from './components/Workshop';
 import Hackathon from './components/Hackathon';
+import Login from './components/Login';
+import Register from './components/Register';
 
 const AppRoutes = () => {
   return (
@@ -22,6 +24,8 @@ const AppRoutes = () => {
         <Route path="/register-cricket" element={<CricketScreening />} />
         <Route path="/register-workshop" element={<Workshop />} />
         <Route path="/register-hackathon" element={<Hackathon />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
       </Routes>
     </Router>
   );
