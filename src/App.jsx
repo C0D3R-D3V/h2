@@ -106,13 +106,13 @@ export default function App() {
               </button>
               {activeDropdown === 'events' && (
                 <div className="dropdown-content">
-                  <a href="#event-details">Event Details</a>
-                  <a href="#register-concert">Concert Night</a>
-                  <a href="#register-sports">Sports Meet</a>
-                  <a href="#register-movie">Movie Screening</a>
-                  <a href="#register-cricket">Cricket Screening</a>
-                  <a href="#register-workshop">Technical Workshops</a>
-                  <a href="#register-hackathon">Hackathon</a>
+                  <a href="/event-details">Event Details</a>
+                  <a href="/register-concert">Concert Night</a>
+                  <a href="/register-sports">Sports Meet</a>
+                  <a href="/register-movie">Movie Screening</a>
+                  <a href="/register-cricket">Cricket Screening</a>
+                  <a href="/register-workshop">Technical Workshops</a>
+                  <a href="/register-hackathon">Hackathon</a>
                 </div>
               )}
             </div>
