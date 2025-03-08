@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import './App.css';
 
@@ -21,9 +20,9 @@ export default function App() {
     "🏆 Cricket screening with Sachin Tendulkar - Sunday 3PM",
     "💻 Hackathon registration closes in 2 days"
   ]);
-  
+
   const userMenuRef = useRef(null);
-  
+
   // Handle outside clicks for user menu
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -31,24 +30,24 @@ export default function App() {
         setShowUserMenu(false);
       }
     };
-    
+
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
-  
+
   // Show quiz popup after login
   useEffect(() => {
     if (isLoggedIn) {
       const timer = setTimeout(() => {
         setShowQuizPopup(true);
       }, 2000);
-      
+
       return () => clearTimeout(timer);
     }
   }, [isLoggedIn]);
-  
+
   const toggleDropdown = (dropdown) => {
     if (activeDropdown === dropdown) {
       setActiveDropdown(null);
@@ -65,7 +64,7 @@ export default function App() {
     setNotifications(updatedNotifications);
     setNewNotificationCount(0);
   };
-  
+
   const toggleTheme = () => {
     setIsDarkTheme(!isDarkTheme);
     document.body.classList.toggle('dark-theme');
@@ -80,11 +79,11 @@ export default function App() {
         message: `${randomId % 2 === 0 ? "New event added!" : "Schedule update!"} Check it out!`,
         isNew: true
       };
-      
+
       setNotifications(prev => [newNotification, ...prev.slice(0, 4)]);
       setNewNotificationCount(prev => prev + 1);
     }, 45000); // New notification every 45 seconds
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -96,7 +95,7 @@ export default function App() {
           <h1>FestX at KOED Learning</h1>
           <span className="event-date">October 15-17, 2023</span>
         </div>
-        
+
         <nav>
           <div className="nav-dropdowns">
             <div className="dropdown">
@@ -116,7 +115,7 @@ export default function App() {
                 </div>
               )}
             </div>
-            
+
             <div className="dropdown">
               <button className="dropdown-btn" onClick={() => toggleDropdown('artists')}>
                 Artists
@@ -131,7 +130,7 @@ export default function App() {
                 </div>
               )}
             </div>
-            
+
             <div className="dropdown">
               <button className="dropdown-btn" onClick={() => toggleDropdown('venue')}>
                 Venue
@@ -146,7 +145,7 @@ export default function App() {
                 </div>
               )}
             </div>
-            
+
             <div className="dropdown">
               <button className="dropdown-btn" onClick={() => toggleDropdown('food')}>
                 Food
@@ -161,7 +160,7 @@ export default function App() {
                 </div>
               )}
             </div>
-            
+
             <div className="dropdown">
               <button className="dropdown-btn" onClick={() => toggleDropdown('merch')}>
                 Merchandise
@@ -176,7 +175,7 @@ export default function App() {
               )}
             </div>
           </div>
-          
+
           <div className="user-actions">
             <div className="notification-bell" onClick={() => {
               setShowNotifications(!showNotifications);
@@ -187,7 +186,7 @@ export default function App() {
                 <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
               </svg>
               {newNotificationCount > 0 && <span className="notification-badge">{newNotificationCount}</span>}
-              
+
               {showNotifications && (
                 <div className="notifications-dropdown">
                   <div className="notifications-header">
@@ -211,7 +210,7 @@ export default function App() {
                 </div>
               )}
             </div>
-            
+
             <div className="auth-buttons">
               {isLoggedIn ? (
                 <div className="user-menu-container" ref={userMenuRef}>
@@ -223,7 +222,7 @@ export default function App() {
                     <span className="user-name">User</span>
                     <span className={`arrow ${showUserMenu ? 'up' : 'down'}`}></span>
                   </button>
-                  
+
                   {showUserMenu && (
                     <div className="user-dropdown">
                       <div className="user-dropdown-header">
@@ -496,7 +495,7 @@ export default function App() {
           ))}
         </div>
       </div>
-      
+
       {/* Quiz Popup */}
       {showQuizPopup && (
         <div className="quiz-popup">
@@ -513,7 +512,7 @@ export default function App() {
           </div>
         </div>
       )}
-      
+
       <footer>
         <div className="footer-content">
           <div className="contact-info">
