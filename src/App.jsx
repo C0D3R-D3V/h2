@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import './App.css';
 
 export default function App() {
@@ -11,7 +11,43 @@ export default function App() {
     {id: 3, message: "Workshop registration opens tomorrow", isNew: false}
   ]);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const [newNotificationCount, setNewNotificationCount] = useState(2);
+  const [isDarkTheme, setIsDarkTheme] = useState(false);
+  const [showQuizPopup, setShowQuizPopup] = useState(false);
+  const [announcements, setAnnouncements] = useState([
+    "🔥 Famous Singer just confirmed for Saturday night!",
+    "⚡ Last 50 tickets remaining for the main event",
+    "🏆 Cricket screening with Sachin Tendulkar - Sunday 3PM",
+    "💻 Hackathon registration closes in 2 days"
+  ]);
+  
+  const userMenuRef = useRef(null);
+  
+  // Handle outside clicks for user menu
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setShowUserMenu(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+  
+  // Show quiz popup after login
+  useEffect(() => {
+    if (isLoggedIn) {
+      const timer = setTimeout(() => {
+        setShowQuizPopup(true);
+      }, 2000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isLoggedIn]);
   
   const toggleDropdown = (dropdown) => {
     if (activeDropdown === dropdown) {
@@ -28,6 +64,11 @@ export default function App() {
     }));
     setNotifications(updatedNotifications);
     setNewNotificationCount(0);
+  };
+  
+  const toggleTheme = () => {
+    setIsDarkTheme(!isDarkTheme);
+    document.body.classList.toggle('dark-theme');
   };
 
   // Simulate incoming notifications
@@ -173,7 +214,80 @@ export default function App() {
             
             <div className="auth-buttons">
               {isLoggedIn ? (
-                <button onClick={() => setIsLoggedIn(false)}>Logout</button>
+                <div className="user-menu-container" ref={userMenuRef}>
+                  <button 
+                    className="user-avatar" 
+                    onClick={() => setShowUserMenu(!showUserMenu)}
+                  >
+                    <img src="https://via.placeholder.com/36x36" alt="User" />
+                    <span className="user-name">User</span>
+                    <span className={`arrow ${showUserMenu ? 'up' : 'down'}`}></span>
+                  </button>
+                  
+                  {showUserMenu && (
+                    <div className="user-dropdown">
+                      <div className="user-dropdown-header">
+                        <span>My Dashboard</span>
+                      </div>
+                      <a href="#dashboard" className="user-dropdown-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="3" y="3" width="7" height="7"></rect>
+                          <rect x="14" y="3" width="7" height="7"></rect>
+                          <rect x="14" y="14" width="7" height="7"></rect>
+                          <rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>
+                        Dashboard
+                      </a>
+                      <a href="#orders" className="user-dropdown-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                          <line x1="3" y1="6" x2="21" y2="6"></line>
+                          <path d="M16 10a4 4 0 0 1-8 0"></path>
+                        </svg>
+                        Your Orders
+                      </a>
+                      <a href="#tickets" className="user-dropdown-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                          <line x1="16" y1="2" x2="16" y2="6"></line>
+                          <line x1="8" y1="2" x2="8" y2="6"></line>
+                          <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                        My Tickets
+                      </a>
+                      <a href="#password" className="user-dropdown-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                        Change Password
+                      </a>
+                      <a href="#help" className="user-dropdown-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="12" r="10"></circle>
+                          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                          <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
+                        Help & Support
+                      </a>
+                      <button className="user-dropdown-item theme-toggle" onClick={toggleTheme}>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                        </svg>
+                        {isDarkTheme ? 'Light Theme' : 'Dark Theme'}
+                      </button>
+                      <div className="dropdown-divider"></div>
+                      <button className="user-dropdown-item logout" onClick={() => setIsLoggedIn(false)}>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                          <polyline points="16 17 21 12 16 7"></polyline>
+                          <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
               ) : (
                 <>
                   <button onClick={() => setIsLoggedIn(true)}>Login</button>
@@ -358,36 +472,7 @@ export default function App() {
         </div>
       </section>
 
-      <section className="user-dashboard">
-        <div className="section-header">
-          <h2>My Dashboard</h2>
-          <p>Track your registrations and activity</p>
-        </div>
-        {isLoggedIn ? (
-          <div className="dashboard-content">
-            <div className="dashboard-card">
-              <h3>My Events</h3>
-              <p>You haven't registered for any events yet.</p>
-              <button>Browse Events</button>
-            </div>
-            <div className="dashboard-card">
-              <h3>My Tickets</h3>
-              <p>No tickets purchased.</p>
-              <button>Buy Tickets</button>
-            </div>
-            <div className="dashboard-card">
-              <h3>My Quiz Scores</h3>
-              <p>You haven't participated in any quizzes yet.</p>
-              <button>Try a Quiz</button>
-            </div>
-          </div>
-        ) : (
-          <div className="login-prompt">
-            <p>Please log in to view your dashboard</p>
-            <button onClick={() => setIsLoggedIn(true)}>Login Now</button>
-          </div>
-        )}
-      </section>
+      {/* User dashboard removed from main content */}
 
       <section className="sponsors">
         <div className="section-header flip">
@@ -403,6 +488,32 @@ export default function App() {
         </div>
       </section>
 
+      {/* Floating announcement ticker */}
+      <div className="announcements-ticker">
+        <div className="ticker-content">
+          {[...announcements, ...announcements].map((announcement, index) => (
+            <span key={index} className="ticker-item">{announcement}</span>
+          ))}
+        </div>
+      </div>
+      
+      {/* Quiz Popup */}
+      {showQuizPopup && (
+        <div className="quiz-popup">
+          <div className="quiz-popup-content">
+            <button className="quiz-popup-close" onClick={() => setShowQuizPopup(false)}>×</button>
+            <h3>Quick Trivia!</h3>
+            <p>Which artist performed at our last year's fest?</p>
+            <div className="quiz-options">
+              <button>DJ Snake</button>
+              <button>Coldplay</button>
+              <button>Ed Sheeran</button>
+              <button>Dua Lipa</button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <footer>
         <div className="footer-content">
           <div className="contact-info">
