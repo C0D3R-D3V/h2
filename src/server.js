@@ -89,3 +89,31 @@ app.listen(PORT, '0.0.0.0', () => {
 });
 
 module.exports = app;
+const express = require('express');
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
+const authRoutes = require('./api/auth');
+
+const app = express();
+const PORT = process.env.PORT || 3001;
+
+// Middleware
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' ? 'https://your-domain.com' : 'http://localhost:3000',
+  credentials: true
+}));
+app.use(express.json());
+app.use(cookieParser());
+
+// Routes
+app.use('/api/auth', authRoutes);
+
+// Health check
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
+
+// Start server
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on port ${PORT}`);
+});
