@@ -1,24 +1,19 @@
-
--- User Authentication Tables
-
--- Create users table for registration and login
+-- Users table for authentication
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
+    username VARCHAR(100) NOT NULL UNIQUE,
     email VARCHAR(100) UNIQUE,
     mobile VARCHAR(15) UNIQUE,
     password VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    last_login TIMESTAMP,
-    is_active BOOLEAN DEFAULT TRUE
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create sessions table to manage user login sessions
+-- Sessions table for managing user sessions
 CREATE TABLE IF NOT EXISTS sessions (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL,
-    session_token VARCHAR(255) NOT NULL UNIQUE,
+    token VARCHAR(255) NOT NULL UNIQUE,
     expires_at TIMESTAMP NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE

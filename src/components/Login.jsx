@@ -1,23 +1,21 @@
-
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Login.css';
 
 const Login = () => {
-  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     identifier: '',
-    password: '',
+    password: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
+    setFormData(prevState => ({
+      ...prevState,
+      [name]: value
     }));
   };
 
@@ -25,7 +23,7 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    
+
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
@@ -35,17 +33,17 @@ const Login = () => {
         body: JSON.stringify(formData),
         credentials: 'include'
       });
-      
+
       const data = await response.json();
-      
+
       if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
+        throw new Error(data.error || 'Login failed');
       }
-      
-      // Store login status in localStorage
+
+      // Login successful
       localStorage.setItem('isLoggedIn', 'true');
-      localStorage.setItem('userData', JSON.stringify(data.user));
-      
+      localStorage.setItem('user', JSON.stringify(data.user));
+
       // Redirect to home page
       navigate('/');
     } catch (error) {
@@ -57,110 +55,83 @@ const Login = () => {
 
   return (
     <div className="login-container">
-      <div className="login-card">
-        <div className="login-header">
-          <h2>Welcome Back</h2>
-          <p>Sign in to continue to FestX</p>
-        </div>
-        
-        {error && <div className="error-message">{error}</div>}
-        
-        <form onSubmit={handleSubmit} className="login-form">
-          <div className="form-group">
-            <label htmlFor="identifier">Email or Mobile</label>
-            <div className="input-icon-wrapper">
-              <i className="icon-user"></i>
-              <input
-                type="text"
-                id="identifier"
-                name="identifier"
+      <div className="login-wrapper">
+        <div className="login-form-container">
+          <div className="login-header">
+            <h1>Welcome Back!</h1>
+            <p>Sign in to continue to FestX</p>
+          </div>
+
+          {error && <div className="error-message">{error}</div>}
+
+          <form onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label htmlFor="identifier">Email / Username / Mobile</label>
+              <input 
+                type="text" 
+                id="identifier" 
+                name="identifier" 
                 value={formData.identifier}
                 onChange={handleChange}
-                placeholder="Enter your email or mobile"
-                required
+                required 
+                placeholder="Enter your email, username or mobile"
               />
             </div>
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <div className="input-icon-wrapper">
-              <i className="icon-lock"></i>
-              <input
-                type={showPassword ? "text" : "password"}
-                id="password"
-                name="password"
+
+            <div className="form-group">
+              <label htmlFor="password">Password</label>
+              <input 
+                type="password" 
+                id="password" 
+                name="password" 
                 value={formData.password}
                 onChange={handleChange}
-                placeholder="Enter your password"
-                required
+                required 
+                placeholder="Enter your password" 
               />
-              <button 
-                type="button" 
-                className="password-toggle"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? "Hide" : "Show"}
+              <div className="forgot-password">
+                <a href="#forgot">Forgot Password?</a>
+              </div>
+            </div>
+
+            <div className="form-button">
+              <button type="submit" disabled={loading}>
+                {loading ? 'Logging in...' : 'Login'}
               </button>
             </div>
-          </div>
-          
-          <div className="form-options">
-            <div className="remember-me">
-              <input type="checkbox" id="rememberMe" />
-              <label htmlFor="rememberMe">Remember me</label>
+
+            <div className="social-login">
+              <p>Or login with</p>
+              <div className="social-buttons">
+                <button type="button" className="social-button google">
+                  <span className="icon-google"></span>
+                  Google
+                </button>
+                <button type="button" className="social-button facebook">
+                  <span className="icon-facebook"></span>
+                  Facebook
+                </button>
+              </div>
             </div>
-            <Link to="/forgot-password" className="forgot-password">
-              Forgot Password?
-            </Link>
-          </div>
-          
-          <button 
-            type="submit" 
-            className="login-button" 
-            disabled={loading}
-          >
-            {loading ? 'Signing in...' : 'Sign In'}
-          </button>
-        </form>
-        
-        <div className="social-login">
-          <p>Or sign in with</p>
-          <div className="social-buttons">
-            <button className="social-button google">
-              <i className="icon-google"></i>
-              Google
-            </button>
-            <button className="social-button facebook">
-              <i className="icon-facebook"></i>
-              Facebook
-            </button>
+          </form>
+
+          <div className="register-prompt">
+            <p>Don't have an account?</p>
+            <Link to="/register" className="register-link">Register Now</Link>
           </div>
         </div>
-        
-        <div className="register-prompt">
-          <p>Don't have an account?</p>
-          <Link to="/register" className="register-link">
-            Register Now
-          </Link>
-        </div>
-      </div>
-      
-      <div className="login-features">
-        <div className="feature-card">
-          <i className="icon-ticket"></i>
-          <h3>Easy Ticket Access</h3>
-          <p>Manage all your FestX tickets in one place</p>
-        </div>
-        <div className="feature-card">
-          <i className="icon-calendar"></i>
-          <h3>Event Reminders</h3>
-          <p>Get notified about upcoming events you're interested in</p>
-        </div>
-        <div className="feature-card">
-          <i className="icon-discount"></i>
-          <h3>Exclusive Discounts</h3>
-          <p>Access special offers only available to registered users</p>
+
+        <div className="login-features">
+          <div className="feature-card">
+            <i className="icon-ticket"></i>
+            <h3>Get Your Tickets</h3>
+            <p>Access early bird tickets and special offers</p>
+          </div>
+          <div className="feature-card">
+            <i className="icon-calendar"></i>
+            <h3>Event Schedule</h3>
+            <p>Build your personal calendar for the fest</p>
+          </div>
         </div>
       </div>
     </div>

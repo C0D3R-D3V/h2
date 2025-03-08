@@ -92,6 +92,7 @@ module.exports = app;
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser');
 const authRoutes = require('./api/auth');
 
 const app = express();
@@ -99,11 +100,21 @@ const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' ? 'https://your-domain.com' : 'http://localhost:3000',
+  origin: process.env.NODE_ENV === 'production' ? 'https://your-domain.com' : '*',
   credentials: true
 }));
-app.use(express.json());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// Serve static files from public directory
+app.use(express.static('public'));
+
+// Simple logging middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.originalUrl}`);
+  next();
+});
 
 // Routes
 app.use('/api/auth', authRoutes);

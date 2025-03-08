@@ -1,124 +1,93 @@
-
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Register.css';
 
 const Register = () => {
-  const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    name: '',
+    username: '',
     email: '',
     mobile: '',
     password: '',
-    confirmPassword: '',
+    confirmPassword: ''
   });
-  const [formErrors, setFormErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [step, setStep] = useState(1);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
+    setFormData(prevState => ({
+      ...prevState,
+      [name]: value
     }));
-    
-    // Clear error for this field
-    if (formErrors[name]) {
-      setFormErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
-    }
   };
 
   const validateForm = () => {
-    const errors = {};
-    
-    // Validate name
-    if (!formData.name.trim()) {
-      errors.name = 'Name is required';
+    if (!formData.username.trim()) {
+      setError('Username is required');
+      return false;
     }
-    
-    // Validate email
-    if (!formData.email) {
-      errors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      errors.email = 'Email is invalid';
-    }
-    
-    // Validate mobile (optional)
-    if (formData.mobile && !/^\d{10}$/.test(formData.mobile)) {
-      errors.mobile = 'Mobile number must be 10 digits';
-    }
-    
-    // Validate password
-    if (!formData.password) {
-      errors.password = 'Password is required';
-    } else if (formData.password.length < 8) {
-      errors.password = 'Password must be at least 8 characters';
-    }
-    
-    // Validate password confirmation
-    if (formData.password !== formData.confirmPassword) {
-      errors.confirmPassword = 'Passwords do not match';
-    }
-    
-    return errors;
-  };
 
-  const handleFirstStep = (e) => {
-    e.preventDefault();
-    
-    // Validate only first step fields
-    const errors = {};
-    if (!formData.name.trim()) errors.name = 'Name is required';
-    if (!formData.email) {
-      errors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      errors.email = 'Email is invalid';
+    if (!formData.email.trim() && !formData.mobile.trim()) {
+      setError('Email or mobile number is required');
+      return false;
     }
-    
-    if (Object.keys(errors).length === 0) {
-      setStep(2);
-    } else {
-      setFormErrors(errors);
+
+    if (formData.email.trim() && !/^\S+@\S+\.\S+$/.test(formData.email)) {
+      setError('Please enter a valid email');
+      return false;
     }
+
+    if (formData.mobile.trim() && !/^\d{10}$/.test(formData.mobile)) {
+      setError('Please enter a valid 10-digit mobile number');
+      return false;
+    }
+
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return false;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      return false;
+    }
+
+    return true;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Final validation
-    const errors = validateForm();
-    if (Object.keys(errors).length > 0) {
-      setFormErrors(errors);
+
+    if (!validateForm()) {
       return;
     }
-    
+
     setLoading(true);
     setError('');
-    
+
     try {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          username: formData.username,
+          email: formData.email || undefined,
+          mobile: formData.mobile || undefined,
+          password: formData.password
+        })
       });
-      
+
       const data = await response.json();
-      
+
       if (!response.ok) {
-        throw new Error(data.message || 'Registration failed');
+        throw new Error(data.error || 'Registration failed');
       }
-      
-      // Show success and redirect to login
-      alert('Registration successful! Please login.');
-      navigate('/login');
+
+      // Registration successful - redirect to login
+      navigate('/login', { state: { message: 'Registration successful! Please login.' } });
     } catch (error) {
       setError(error.message);
     } finally {
@@ -126,197 +95,114 @@ const Register = () => {
     }
   };
 
-  const passwordStrength = () => {
-    const { password } = formData;
-    if (!password) return '';
-    
-    if (password.length < 8) return 'weak';
-    if (password.length >= 12 && /[A-Z]/.test(password) && /[a-z]/.test(password) && /[0-9]/.test(password) && /[^A-Za-z0-9]/.test(password)) {
-      return 'strong';
-    }
-    return 'medium';
-  };
-
   return (
     <div className="register-container">
-      <div className="register-card">
-        <div className="register-header">
-          <h2>Create Your Account</h2>
-          <p>Join FestX and get exclusive access to events</p>
-          
-          <div className="step-indicator">
-            <div className={`step ${step === 1 ? 'active' : ''}`}>1</div>
-            <div className="step-line"></div>
-            <div className={`step ${step === 2 ? 'active' : ''}`}>2</div>
+      <div className="register-wrapper">
+        <div className="register-form-container">
+          <div className="register-header">
+            <h1>Create Account</h1>
+            <p>Join FestX 2023 and get exclusive access!</p>
+          </div>
+
+          {error && <div className="error-message">{error}</div>}
+
+          <form onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label htmlFor="username">Username</label>
+              <input 
+                type="text" 
+                id="username" 
+                name="username" 
+                value={formData.username}
+                onChange={handleChange}
+                required 
+                placeholder="Choose a username"
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="email">Email Address</label>
+              <input 
+                type="email" 
+                id="email" 
+                name="email" 
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="Enter your email address"
+              />
+              <small>Enter either email or mobile number (or both)</small>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="mobile">Mobile Number</label>
+              <input 
+                type="tel" 
+                id="mobile" 
+                name="mobile" 
+                value={formData.mobile}
+                onChange={handleChange}
+                placeholder="Enter your mobile number" 
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="password">Password</label>
+              <input 
+                type="password" 
+                id="password" 
+                name="password" 
+                value={formData.password}
+                onChange={handleChange}
+                required 
+                placeholder="Create a password" 
+              />
+              <small>Password must be at least 6 characters</small>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="confirmPassword">Confirm Password</label>
+              <input 
+                type="password" 
+                id="confirmPassword" 
+                name="confirmPassword" 
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                required 
+                placeholder="Confirm your password" 
+              />
+            </div>
+
+            <div className="terms-privacy">
+              <label>
+                <input type="checkbox" required />
+                I agree to the <a href="#terms">Terms of Service</a> and <a href="#privacy">Privacy Policy</a>
+              </label>
+            </div>
+
+            <div className="form-actions">
+              <Link to="/" className="back-button">Back</Link>
+              <button type="submit" className="register-button" disabled={loading}>
+                {loading ? 'Registering...' : 'Create Account'}
+              </button>
+            </div>
+          </form>
+
+          <div className="login-prompt">
+            <p>Already have an account?</p>
+            <Link to="/login" className="login-link">Login Here</Link>
           </div>
         </div>
-        
-        {error && <div className="error-message">{error}</div>}
-        
-        <form onSubmit={step === 1 ? handleFirstStep : handleSubmit} className="register-form">
-          {step === 1 ? (
-            // Step 1: Basic Information
-            <>
-              <div className="form-group">
-                <label htmlFor="name">Full Name</label>
-                <div className="input-icon-wrapper">
-                  <i className="icon-user"></i>
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    placeholder="Enter your full name"
-                  />
-                </div>
-                {formErrors.name && <span className="error-text">{formErrors.name}</span>}
-              </div>
-              
-              <div className="form-group">
-                <label htmlFor="email">Email Address</label>
-                <div className="input-icon-wrapper">
-                  <i className="icon-email"></i>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    placeholder="Enter your email address"
-                  />
-                </div>
-                {formErrors.email && <span className="error-text">{formErrors.email}</span>}
-              </div>
-              
-              <div className="form-group">
-                <label htmlFor="mobile">Mobile Number (Optional)</label>
-                <div className="input-icon-wrapper">
-                  <i className="icon-phone"></i>
-                  <input
-                    type="tel"
-                    id="mobile"
-                    name="mobile"
-                    value={formData.mobile}
-                    onChange={handleChange}
-                    placeholder="Enter your 10-digit mobile number"
-                  />
-                </div>
-                {formErrors.mobile && <span className="error-text">{formErrors.mobile}</span>}
-              </div>
-              
-              <button type="submit" className="register-button">
-                Continue
-              </button>
-            </>
-          ) : (
-            // Step 2: Password Setup
-            <>
-              <div className="form-group">
-                <label htmlFor="password">Create Password</label>
-                <div className="input-icon-wrapper">
-                  <i className="icon-lock"></i>
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    id="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    placeholder="Create a strong password"
-                  />
-                  <button 
-                    type="button" 
-                    className="password-toggle"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? "Hide" : "Show"}
-                  </button>
-                </div>
-                {formErrors.password && <span className="error-text">{formErrors.password}</span>}
-                
-                {formData.password && (
-                  <div className="password-strength">
-                    <div className="strength-bar">
-                      <div 
-                        className={`strength-indicator ${passwordStrength()}`}
-                        style={{ width: passwordStrength() === 'weak' ? '30%' : passwordStrength() === 'medium' ? '70%' : '100%' }}
-                      ></div>
-                    </div>
-                    <span className="strength-text">
-                      {passwordStrength() === 'weak' ? 'Weak password' : 
-                       passwordStrength() === 'medium' ? 'Medium strength' : 'Strong password'}
-                    </span>
-                  </div>
-                )}
-              </div>
-              
-              <div className="form-group">
-                <label htmlFor="confirmPassword">Confirm Password</label>
-                <div className="input-icon-wrapper">
-                  <i className="icon-lock"></i>
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    placeholder="Confirm your password"
-                  />
-                </div>
-                {formErrors.confirmPassword && <span className="error-text">{formErrors.confirmPassword}</span>}
-              </div>
-              
-              <div className="form-group checkbox">
-                <input type="checkbox" id="termsAgree" required />
-                <label htmlFor="termsAgree">
-                  I agree to the <a href="/terms" target="_blank">Terms of Service</a> and <a href="/privacy" target="_blank">Privacy Policy</a>
-                </label>
-              </div>
-              
-              <div className="form-actions">
-                <button type="button" className="back-button" onClick={() => setStep(1)}>
-                  Back
-                </button>
-                <button 
-                  type="submit" 
-                  className="register-button" 
-                  disabled={loading}
-                >
-                  {loading ? 'Creating Account...' : 'Create Account'}
-                </button>
-              </div>
-            </>
-          )}
-        </form>
-        
-        <div className="login-prompt">
-          <p>Already have an account?</p>
-          <Link to="/login" className="login-link">
-            Sign In
-          </Link>
+
+        <div className="register-benefits">
+          <h3>Benefits of Joining</h3>
+          <ul className="benefits-list">
+            <li>Early access to event tickets</li>
+            <li>Exclusive merchandise discounts</li>
+            <li>Participate in contests and win prizes</li>
+            <li>Priority seating for selected events</li>
+            <li>Get notified about upcoming events</li>
+          </ul>
         </div>
-      </div>
-      
-      <div className="register-benefits">
-        <h3>Why Join FestX?</h3>
-        <ul className="benefits-list">
-          <li>
-            <i className="icon-ticket"></i>
-            <span>Early access to event tickets</span>
-          </li>
-          <li>
-            <i className="icon-discount"></i>
-            <span>Exclusive member discounts</span>
-          </li>
-          <li>
-            <i className="icon-notification"></i>
-            <span>Event reminders and updates</span>
-          </li>
-          <li>
-            <i className="icon-fasttrack"></i>
-            <span>Fast-track entry at select events</span>
-          </li>
-        </ul>
       </div>
     </div>
   );
