@@ -138,12 +138,21 @@
 }
 
 .register-button:hover {
-  background-color: #3a7bc8;
+  background-color: #2a6fc1;
 }
 
 .register-button:disabled {
-  background-color: #a0c0e8;
+  background-color: #a7c7f0;
   cursor: not-allowed;
+}
+
+.error-message {
+  background-color: #ffebee;
+  color: #c62828;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  text-align: center;
 }
 
 .login-prompt {
@@ -168,14 +177,6 @@
   text-decoration: underline;
 }
 
-.error-message {
-  background-color: #ffebee;
-  color: #d32f2f;
-  padding: 12px;
-  border-radius: 6px;
-  margin-bottom: 20px;
-  font-size: 14px;
-}
 
 /* Benefits section */
 .register-benefits {

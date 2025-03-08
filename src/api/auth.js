@@ -1,119 +1,159 @@
+
 const express = require('express');
-const { registerUser, loginUser, verifySession, logoutUser } = require('../db/auth');
 const router = express.Router();
+const jwt = require('jsonwebtoken');
+const { registerUser, loginUser } = require('../db/auth');
+
+// JWT Secret
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 // Register endpoint
 router.post('/register', async (req, res) => {
   try {
-    const { username, email, mobile, password } = req.body;
-
-    // Validate input
-    if (!username || !password) {
-      return res.status(400).json({ success: false, error: 'Username and password are required' });
+    const { username, email, password, fullName, phone } = req.body;
+    
+    // Basic validation
+    if (!username || !email || !password) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Username, email, and password are required' 
+      });
     }
-
-    // At least one contact method is required
-    if (!email && !mobile) {
-      return res.status(400).json({ success: false, error: 'Email or mobile number is required' });
-    }
-
-    // Password strength check
-    if (password.length < 6) {
-      return res.status(400).json({ success: false, error: 'Password must be at least 6 characters' });
-    }
-
-    // Register user
-    const result = await registerUser(username, email, mobile, password);
-
-    if (!result.success) {
-      return res.status(400).json(result);
-    }
-
-    res.status(201).json(result);
+    
+    // Register the user
+    const user = await registerUser({ username, email, password, fullName, phone });
+    
+    // Generate a JWT token
+    const token = jwt.sign(
+      { id: user.id, username: user.username, email: user.email },
+      JWT_SECRET,
+      { expiresIn: '1d' }
+    );
+    
+    // Set the token as a cookie
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 24 * 60 * 60 * 1000 // 1 day
+    });
+    
+    res.status(201).json({
+      success: true,
+      message: 'User registered successfully',
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        fullName: user.full_name,
+        phone: user.phone
+      }
+    });
   } catch (error) {
     console.error('Registration error:', error);
-    res.status(500).json({ success: false, error: 'Registration failed' });
+    
+    // Check for duplicate key error
+    if (error.code === '23505') { // PostgreSQL unique constraint violation
+      return res.status(409).json({
+        success: false,
+        message: 'Username or email already exists'
+      });
+    }
+    
+    res.status(500).json({
+      success: false,
+      message: 'Error registering user'
+    });
   }
 });
 
 // Login endpoint
 router.post('/login', async (req, res) => {
   try {
-    const { identifier, password } = req.body;
-
-    if (!identifier || !password) {
-      return res.status(400).json({ success: false, error: 'Login ID and password are required' });
+    const { email, password } = req.body;
+    
+    // Basic validation
+    if (!email || !password) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Email and password are required' 
+      });
     }
-
-    const result = await loginUser(identifier, password);
-
+    
+    // Login the user
+    const result = await loginUser(email, password);
+    
     if (!result.success) {
-      return res.status(401).json(result);
+      return res.status(401).json({
+        success: false,
+        message: result.message
+      });
     }
-
-    // Set session token in cookie
-    res.cookie('authToken', result.session.token, {
+    
+    // Generate a JWT token
+    const token = jwt.sign(
+      { id: result.user.id, username: result.user.username, email: result.user.email },
+      JWT_SECRET,
+      { expiresIn: '1d' }
+    );
+    
+    // Set the token as a cookie
+    res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      sameSite: 'strict'
+      maxAge: 24 * 60 * 60 * 1000 // 1 day
     });
-
-    res.json(result);
-  } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ success: false, error: 'Login failed' });
-  }
-});
-
-// Get current user
-router.get('/me', async (req, res) => {
-  try {
-    const token = req.cookies.authToken;
-
-    if (!token) {
-      return res.status(401).json({ success: false, error: 'Not authenticated' });
-    }
-
-    const result = await verifySession(token);
-
-    if (!result.success) {
-      return res.status(401).json(result);
-    }
-
+    
     res.json({
       success: true,
-      user: {
-        id: result.session.user_id,
-        username: result.session.username,
-        email: result.session.email,
-        mobile: result.session.mobile
-      }
+      message: 'Login successful',
+      user: result.user
     });
   } catch (error) {
-    console.error('Authentication error:', error);
-    res.status(500).json({ success: false, error: 'Authentication failed' });
+    console.error('Login error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error logging in'
+    });
   }
 });
 
 // Logout endpoint
-router.post('/logout', async (req, res) => {
+router.post('/logout', (req, res) => {
+  res.clearCookie('token');
+  res.json({
+    success: true,
+    message: 'Logged out successfully'
+  });
+});
+
+// Get current user endpoint
+router.get('/me', (req, res) => {
   try {
-    const token = req.cookies.authToken;
-
+    const token = req.cookies.token;
+    
     if (!token) {
-      return res.json({ success: true, message: 'Already logged out' });
+      return res.status(401).json({
+        success: false,
+        message: 'Not authenticated'
+      });
     }
-
-    await logoutUser(token);
-
-    // Clear the cookie
-    res.clearCookie('authToken');
-
-    res.json({ success: true, message: 'Logged out successfully' });
+    
+    const decoded = jwt.verify(token, JWT_SECRET);
+    
+    res.json({
+      success: true,
+      user: {
+        id: decoded.id,
+        username: decoded.username,
+        email: decoded.email
+      }
+    });
   } catch (error) {
-    console.error('Logout error:', error);
-    res.status(500).json({ success: false, error: 'Logout failed' });
+    console.error('Auth check error:', error);
+    res.status(401).json({
+      success: false,
+      message: 'Invalid token'
+    });
   }
 });
 

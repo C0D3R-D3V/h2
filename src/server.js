@@ -93,10 +93,17 @@ const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
+const path = require('path');
 const authRoutes = require('./api/auth');
+const initDatabase = require('./db/init');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// Initialize database
+initDatabase().catch(err => {
+  console.error('Failed to initialize database:', err);
+});
 
 // Middleware
 app.use(cors({
