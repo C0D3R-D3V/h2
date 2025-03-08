@@ -1,14 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import './App.css';
 import ChatBot from './components/ChatBot';
-import OtpLoginModal from './components/OtpLoginModal';
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
-  const [showLoginModal, setShowLoginModal] = useState(false);
-  const [showOtpModal, setShowOtpModal] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
   const [notifications, setNotifications] = useState([
     {id: 1, message: "New artist announcement coming soon!", isNew: true},
     {id: 2, message: "Early bird tickets now available!", isNew: true},
@@ -294,22 +290,9 @@ export default function App() {
                 </div>
               ) : (
                 <>
-                  <button onClick={() => setShowLoginModal(true)}>Login</button>
-                  <button onClick={() => setShowOtpModal(true)} className="otp-login-btn">Login with OTP</button>
+                  <button onClick={() => setIsLoggedIn(true)}>Login</button>
                   <button className="register-btn">Register</button>
                 </>
-              )}
-              
-              {/* OTP Login Modal */}
-              {showOtpModal && (
-                <OtpLoginModal 
-                  onClose={() => setShowOtpModal(false)} 
-                  onLoginSuccess={(user) => {
-                    setCurrentUser(user);
-                    setIsLoggedIn(true);
-                    setShowOtpModal(false);
-                  }} 
-                />
               )}
             </div>
           </div>
