@@ -17,3 +17,13 @@ module.exports = {
     sameSite: 'strict'
   }
 };
+module.exports = {
+  port: process.env.PORT || 3000,
+  corsOptions: {
+    origin: process.env.NODE_ENV === 'production' 
+      ? ['https://festx.repl.co'] 
+      : ['http://localhost:3000', 'http://localhost:5173'],
+    credentials: true,
+    optionsSuccessStatus: 200
+  }
+};

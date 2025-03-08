@@ -1,9 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
 import './App.css';
 import ChatBot from './components/ChatBot';
+import LoginModal from './components/LoginModal';
+import RegisterModal from './components/RegisterModal';
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [notifications, setNotifications] = useState([
     {id: 1, message: "New artist announcement coming soon!", isNew: true},
@@ -38,6 +43,56 @@ export default function App() {
     };
   }, []);
 
+  // Handle user login
+  const handleLogin = (user) => {
+    setCurrentUser(user);
+    setIsLoggedIn(true);
+    setShowLoginModal(false);
+  };
+
+  // Handle user registration
+  const handleRegister = (user) => {
+    setCurrentUser(user);
+    setIsLoggedIn(true);
+    setShowRegisterModal(false);
+  };
+
+  // Handle user logout
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      setCurrentUser(null);
+      setIsLoggedIn(false);
+      setShowUserMenu(false);
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        const response = await fetch('/api/auth/me', {
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setCurrentUser(data.user);
+          setIsLoggedIn(true);
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+      }
+    };
+    
+    checkAuthStatus();
+  }, []);
+
   // Show quiz popup after login
   useEffect(() => {
     if (isLoggedIn) {
@@ -48,6 +103,20 @@ export default function App() {
       return () => clearTimeout(timer);
     }
   }, [isLoggedIn]);
+
+  // Handle modal close
+  const handleModalClose = (action) => {
+    if (action === 'login') {
+      setShowRegisterModal(false);
+      setShowLoginModal(true);
+    } else if (action === 'register') {
+      setShowLoginModal(false);
+      setShowRegisterModal(true);
+    } else {
+      setShowLoginModal(false);
+      setShowRegisterModal(false);
+    }
+  };
 
   const toggleDropdown = (dropdown) => {
     if (activeDropdown === dropdown) {
@@ -220,7 +289,7 @@ export default function App() {
                     onClick={() => setShowUserMenu(!showUserMenu)}
                   >
                     <img src="https://via.placeholder.com/36x36" alt="User" />
-                    <span className="user-name">User</span>
+                    <span className="user-name">{currentUser?.name || 'User'}</span>
                     <span className={`arrow ${showUserMenu ? 'up' : 'down'}`}></span>
                   </button>
 
@@ -277,7 +346,7 @@ export default function App() {
                         {isDarkTheme ? 'Light Theme' : 'Dark Theme'}
                       </button>
                       <div className="dropdown-divider"></div>
-                      <button className="user-dropdown-item logout" onClick={() => setIsLoggedIn(false)}>
+                      <button className="user-dropdown-item logout" onClick={handleLogout}>
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                           <polyline points="16 17 21 12 16 7"></polyline>
@@ -290,8 +359,8 @@ export default function App() {
                 </div>
               ) : (
                 <>
-                  <button onClick={() => setIsLoggedIn(true)}>Login</button>
-                  <button className="register-btn">Register</button>
+                  <button onClick={() => setShowLoginModal(true)}>Login</button>
+                  <button className="register-btn" onClick={() => setShowRegisterModal(true)}>Register</button>
                 </>
               )}
             </div>
@@ -512,6 +581,21 @@ export default function App() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Auth Modals */}
+      {showLoginModal && (
+        <LoginModal 
+          onClose={handleModalClose} 
+          onLogin={handleLogin} 
+        />
+      )}
+      
+      {showRegisterModal && (
+        <RegisterModal 
+          onClose={handleModalClose} 
+          onRegister={handleRegister} 
+        />
       )}
 
       <footer>
