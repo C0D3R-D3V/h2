@@ -35,6 +35,7 @@ localPort = 5177
 externalPort = 3003
 
 [workflows]
+runButton = "Start Backend"
 
 [[workflows.workflow]]
 name = "Start Backend"
