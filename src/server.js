@@ -55,6 +55,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/tickets', ticketsRoutes);
 app.use('/api/chatbot', chatbotRoutes);
 app.use('/api/chatbot', chatbotRoutes); // Added chatbot routes
+app.use('/api/otp', require('./api/otpAuth')); // Added OTP authentication route
 
 
 // Protected route example
